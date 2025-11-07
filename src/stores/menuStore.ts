@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { DEFAULT_MENU_ITEMS } from '../mocks/menuData';
 import type { MenuItem } from '../types';
 
 // Try to import PouchDB, fallback to localStorage if not available
@@ -27,7 +26,7 @@ const STORAGE_KEY = 'orderin-menu-items';
 const localStorageHelper = {
   getItems: (): MenuItem[] => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(MENU_STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch {
       return [];
@@ -35,19 +34,23 @@ const localStorageHelper = {
   },
   setItems: (items: MenuItem[]) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(items));
     } catch (error) {
       console.error('Failed to save to localStorage:', error);
     }
   }
 };
 
+export const MENU_STORAGE_KEY = 'orderin-menu-items';
+
 export const useMenuStore = create<MenuStore>((set, get) => {
   const loadItems = async () => {
+    console.log('menuStore.loadItems start');
     set({ isLoading: true });
     
     try {
-      if (PouchDB) {
+      let persisted: MenuItem[] = [];
+      if (typeof window !== 'undefined' && window.indexedDB && PouchDB) {
         // Use PouchDB if available
         const db = new PouchDB('orderin-menu');
         const result = await db.allDocs({
@@ -55,25 +58,30 @@ export const useMenuStore = create<MenuStore>((set, get) => {
           attachments: false
         });
         
-        const items = result.rows.map((row: any) => row.doc as MenuItem);
-        set({ items, isLoading: false });
+        persisted = (result.rows || []).map((r: any) => {
+          const doc = r.doc as any;
+          // map _id to id if needed
+          return { id: doc._id ?? doc.id, ...doc } as MenuItem;
+        });
+        console.log('menuStore.loadItems PouchDB success', persisted.length);
       } else {
         // Fallback to localStorage
-        const items = localStorageHelper.getItems();
-        
-        // Seed with mock data if empty and in development
-        if (items.length === 0 && import.meta.env.MODE === 'development') {
-          console.log('DEV: seeded mock menu data');
-          localStorageHelper.setItems(DEFAULT_MENU_ITEMS);
-          set({ items: DEFAULT_MENU_ITEMS, isLoading: false });
-        } else {
-          set({ items, isLoading: false });
-        }
+        persisted = localStorageHelper.getItems();
+        console.log('menuStore.loadItems localStorage success', persisted.length);
+      }
+      
+      // only set items if persisted has entries OR current store is empty
+      const current = get().items || [];
+      if (persisted.length > 0 || current.length === 0) {
+        set({ items: persisted, isLoading: false });
+      } else {
+        console.log('menuStore.loadItems: keeping current in-memory items', current.length);
       }
     } catch (error) {
-      console.error('Failed to load menu items:', error);
+      console.error('menuStore.loadItems error', error);
       set({ items: [], isLoading: false });
     }
+    return get().items;
   };
 
   const localStorageFallbackSave = (items: MenuItem[]) => {
@@ -86,33 +94,31 @@ export const useMenuStore = create<MenuStore>((set, get) => {
   };
 
   const addItem = async (item: MenuItem) => {
-    console.log("🟥 STORE ADD start", item);
+    console.log('menuStore.addItem start', item);
     try {
       // ensure price is number
       item.price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-
-      // optimistic update first to ensure UI re-render
-      set((s) => ({ items: [item, ...s.items] }));
-
+      
       // persist to PouchDB if available, else fallback
-      if (typeof window !== 'undefined' && window.indexedDB) {
+      if (typeof window !== 'undefined' && window.indexedDB && PouchDB) {
         try {
-          if (PouchDB) {
-            const db = new PouchDB('orderin-menu');
-            await db.put({ ...item, updatedAt: new Date() });
-            console.log('PouchDB save success', item.id);
-          } else {
-            localStorageFallbackSave([...get().items]);
-          }
+          const db = new PouchDB('orderin-menu');
+          // Use _id field to avoid PouchDB missing_id error
+          await db.put({ _id: item.id, ...item, updatedAt: new Date() });
+          console.log('PouchDB save success', item.id);
         } catch (pErr) {
           console.error('pouch put error', pErr);
-          localStorageFallbackSave([...get().items]);
+          // fallback to localStorage if pouch errored
+          localStorageHelper.setItems([...get().items, item]);
+          console.log('localStorage fallback success', get().items.length);
         }
       } else {
-        localStorageFallbackSave([...get().items]);
+        localStorageHelper.setItems([...get().items, item]);
+        console.log('localStorage save success', get().items.length);
       }
-
-      console.log('🟥 STORE ADD done', item.id);
+      
+      console.log('menuStore.addItem done', item.id);
+      return item;
     } catch (err) {
       console.error('menuStore.addItem error', err);
       // revert optimistic update if needed
