@@ -40,8 +40,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
     setError,
     reset,
     setValue,
-    control,
-    getValues
+    control
   } = useForm<MenuItemFormValues>({
     resolver: zodResolver(MenuItemFormSchema),
     defaultValues: {
@@ -90,8 +89,12 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
       console.log("🟩 FORM SUBMIT ATTEMPT", data);
       const price = typeof data.price === 'string' ? parseFloat(data.price) : data.price;
       const now = new Date();
+      
+      // Preserve ID for edits, generate new for adds
+      const itemId = initial?.id || data.id || crypto.randomUUID();
+      
       const menuItem: MenuItem = {
-        id: data.id ?? (crypto?.randomUUID?.() ?? "00000000-0000-0000-0000-000000000000"),
+        id: itemId,
         name: data.name.trim(),
         price: Number.isFinite(price) ? price : 0,
         category: data.category.trim(),
@@ -101,7 +104,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
         updatedAt: now
       };
 
-      console.log('onSave called with item', menuItem);
+      const isEdit = !!initial?.id;
+      console.log(`onSave called with ${isEdit ? 'EDIT' : 'ADD'} item`, menuItem);
       await onSave(menuItem);
       reset();
     } catch (error) {

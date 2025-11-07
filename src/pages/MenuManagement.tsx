@@ -52,14 +52,22 @@ const MenuManagement: React.FC = () => {
   const handleSave = async (item: MenuItem) => {
     try {
       console.log("🟦 HANDLE SAVE", item);
-      await useMenuStore.getState().addItem(item);
+      const isEdit = !!editingItem?.id;
+      
+      if (isEdit) {
+        await useMenuStore.getState().updateItem(item);
+        setMessage({ type: 'success', text: 'Item updated successfully' });
+      } else {
+        await useMenuStore.getState().addItem(item);
+        setMessage({ type: 'success', text: 'Item added successfully' });
+      }
+      
       handleCloseForm();
-      setMessage({ type: 'success', text: 'Item added successfully' });
       console.log('MenuManagement.handleSave done', item.id);
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
-      console.error('Menu add failed', err);
-      setMessage({ type: 'error', text: 'Failed to add item' });
+      console.error('Menu save failed', err);
+      setMessage({ type: 'error', text: `Failed to ${editingItem?.id ? 'update' : 'add'} item` });
       setTimeout(() => setMessage(null), 3000);
     }
   };
