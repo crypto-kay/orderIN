@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { MenuItemForm } from '../components/menu/MenuItemForm';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { logger } from '../lib/logger';
 import { useMenuStore } from '../stores/menuStore';
 import type { MenuItem } from '../types';
 import { formatINR } from '../utils/currency';
@@ -21,17 +22,7 @@ const MenuManagement: React.FC = () => {
     loadItems().catch(e => console.warn('loadItems failed', e));
   }, [loadItems]);
 
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    (window as any).__ORDERIN_STORE = useMenuStore.getState();
-    console.log('DEBUG: exposed __ORDERIN_STORE (inspect in console)');
-    // Also update it every 1s for convenience (remove later)
-    const interval = setInterval(() => {
-      try { (window as any).__ORDERIN_STORE = useMenuStore.getState(); } catch(e) {}
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+  // Removed debug global exposure for production
 
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
@@ -51,7 +42,7 @@ const MenuManagement: React.FC = () => {
 
   const handleSave = async (item: MenuItem) => {
     try {
-      console.log("🟦 HANDLE SAVE", item);
+      logger.debug("🟦 HANDLE SAVE", item);
       const isEdit = !!editingItem?.id;
       
       if (isEdit) {
@@ -63,10 +54,10 @@ const MenuManagement: React.FC = () => {
       }
       
       handleCloseForm();
-      console.log('MenuManagement.handleSave done', item.id);
+      logger.debug('MenuManagement.handleSave done', item.id);
       setTimeout(() => setMessage(null), 3000);
     } catch (err) {
-      console.error('Menu save failed', err);
+      logger.error('Menu save failed', err);
       setMessage({ type: 'error', text: `Failed to ${editingItem?.id ? 'update' : 'add'} item` });
       setTimeout(() => setMessage(null), 3000);
     }

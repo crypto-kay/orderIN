@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { logger } from '../lib/logger';
 import type { MenuItem } from '../types';
 
 // Try to import PouchDB, fallback to localStorage if not available
@@ -43,7 +44,7 @@ const localStorageHelper = {
 
 export const useMenuStore = create<MenuStore>((set, get) => {
   const loadItems = async () => {
-    console.log('menuStore.loadItems start');
+    logger.debug('menuStore.loadItems start');
     try {
       let persisted: MenuItem[] = [];
       if (typeof window !== 'undefined' && window.indexedDB && PouchDB) {
@@ -59,28 +60,28 @@ export const useMenuStore = create<MenuStore>((set, get) => {
         const raw = localStorage.getItem(MENU_STORAGE_KEY);
         persisted = raw ? JSON.parse(raw) : [];
       }
-      console.log('menuStore.loadItems persisted count', persisted.length);
+      logger.debug('menuStore.loadItems persisted count', persisted.length);
       // only set items if persisted has entries OR current store is empty
       const current = get().items || [];
       if (persisted.length > 0 || current.length === 0) {
         set({ items: persisted });
       } else {
-        console.log('menuStore.loadItems: keeping current in-memory items', current.length);
+        logger.debug('menuStore.loadItems: keeping current in-memory items', current.length);
       }
       return get().items;
     } catch (err) {
-      console.error('menuStore.loadItems error', err);
+      logger.error('menuStore.loadItems error', err);
       return get().items;
     }
   };
 
   const addItem = async (item: MenuItem): Promise<MenuItem> => {
-    console.log('menuStore.addItem start', item);
+    logger.debug('menuStore.addItem start', item);
     
     // Check if item already exists (prevent duplicates)
     const existing = get().items.find(i => i.id === item.id);
     if (existing) {
-      console.log('Item already exists, updating instead', item.id);
+      logger.debug('Item already exists, updating instead', item.id);
       await updateItem(item);
       return item;
     }
@@ -96,7 +97,7 @@ export const useMenuStore = create<MenuStore>((set, get) => {
         const db = new PouchDB('orderin-menu');
         const doc = { _id: itemWithId.id, ...itemWithId, updatedAt: new Date() };
         const result = await db.put(doc);
-        console.log('PouchDB save success', itemWithId.id, result);
+        logger.debug('PouchDB save success', itemWithId.id, result);
         
         // Update the item with the _rev from PouchDB
         const updatedItem = { ...itemWithId, _rev: result.rev };
@@ -106,12 +107,12 @@ export const useMenuStore = create<MenuStore>((set, get) => {
       } else {
         const currentItems = get().items;
         localStorageHelper.setItems(currentItems);
-        console.log('localStorage save success', currentItems.length);
+        logger.debug('localStorage save success', currentItems.length);
       }
-      console.log('menuStore.addItem done', itemWithId.id);
+      logger.debug('menuStore.addItem done', itemWithId.id);
       return itemWithId;
     } catch (err) {
-      console.error('menuStore.addItem error', err);
+      logger.error('menuStore.addItem error', err);
       // Revert optimistic update on error
       set((s) => ({ items: s.items.filter(i => i.id !== itemWithId.id) }));
       
@@ -119,7 +120,7 @@ export const useMenuStore = create<MenuStore>((set, get) => {
       try {
         const currentItems = get().items;
         localStorageHelper.setItems(currentItems);
-        console.log('localStorage fallback success', currentItems.length);
+        logger.debug('localStorage fallback success', currentItems.length);
       } catch (e) { console.error('localStorage fallback error', e); }
       throw err;
     }
@@ -139,7 +140,7 @@ export const useMenuStore = create<MenuStore>((set, get) => {
             updatedAt: new Date()
           };
           const result = await db.put(doc);
-          console.log('PouchDB update success', updatedItem.id, result);
+          logger.debug('PouchDB update success', updatedItem.id, result);
           
           // Update local state with new _rev
           const updatedWithRev = { ...updatedItem, _rev: result.rev };
@@ -151,12 +152,12 @@ export const useMenuStore = create<MenuStore>((set, get) => {
         } catch (err: any) {
           if (err.name === 'not_found') {
             // Document doesn't exist, create it
-            console.log('Document not found, creating instead', updatedItem.id);
+            logger.debug('Document not found, creating instead', updatedItem.id);
             await addItem(updatedItem);
             return;
           } else if (err.name === 'conflict') {
             // Conflict - retry once with latest version
-            console.log('Conflict detected, retrying with latest version', updatedItem.id);
+            logger.debug('Conflict detected, retrying with latest version', updatedItem.id);
             const latestDoc = await db.get(updatedItem.id);
             const doc = {
               ...latestDoc,
@@ -164,7 +165,7 @@ export const useMenuStore = create<MenuStore>((set, get) => {
               updatedAt: new Date()
             };
             const result = await db.put(doc);
-            console.log('PouchDB conflict retry success', updatedItem.id, result);
+            logger.debug('PouchDB conflict retry success', updatedItem.id, result);
             
             const updatedWithRev = { ...updatedItem, _rev: result.rev };
             set((s) => ({
@@ -186,10 +187,10 @@ export const useMenuStore = create<MenuStore>((set, get) => {
         );
         localStorageHelper.setItems(newItems);
         set({ items: newItems });
-        console.log('localStorage update success', updatedItem.id);
+        logger.debug('localStorage update success', updatedItem.id);
       }
     } catch (error) {
-      console.error('Failed to update menu item:', error);
+      logger.error('Failed to update menu item:', error);
       throw error;
     }
   };
@@ -200,7 +201,7 @@ export const useMenuStore = create<MenuStore>((set, get) => {
         const db = new PouchDB('orderin-menu');
         const doc = await db.get(id);
         await db.remove(doc);
-        console.log('PouchDB delete success', id);
+        logger.debug('PouchDB delete success', id);
         
         // Update local state immediately
         set((s) => ({ items: s.items.filter(item => item.id !== id) }));
@@ -209,10 +210,10 @@ export const useMenuStore = create<MenuStore>((set, get) => {
         const newItems = currentItems.filter(item => item.id !== id);
         localStorageHelper.setItems(newItems);
         set({ items: newItems });
-        console.log('localStorage delete success', id);
+        logger.debug('localStorage delete success', id);
       }
     } catch (error) {
-      console.error('Failed to delete menu item:', error);
+      logger.error('Failed to delete menu item:', error);
       throw error;
     }
   };
@@ -221,7 +222,7 @@ export const useMenuStore = create<MenuStore>((set, get) => {
     const currentItems = get().items;
     const item = currentItems.find(item => item.id === id);
     if (item) {
-      console.log('menuStore.toggleAvailability', id, item.isAvailable);
+      logger.debug('menuStore.toggleAvailability', id, item.isAvailable);
       await updateItem({ ...item, isAvailable: !item.isAvailable });
     }
   };

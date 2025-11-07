@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { logger } from '../../lib/logger';
 import type { MenuItem } from '../../types';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
@@ -54,8 +55,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
   });
 
   useEffect(() => {
-    console.log('MenuItemForm mounted. initial=', initial);
-    return () => console.log('MenuItemForm unmounted');
+    logger.debug('MenuItemForm mounted. initial=', initial);
+    return () => logger.debug('MenuItemForm unmounted');
   }, [initial]);
 
   useEffect(() => {
@@ -71,13 +72,13 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
   useEffect(() => {
     const el = formRef.current;
     if (!el) return;
-    const onNative = (ev: Event) => console.log('FORM native submit event', ev);
+    const onNative = (ev: Event) => logger.debug('FORM native submit event', ev);
     el.addEventListener('submit', onNative);
     return () => el.removeEventListener('submit', onNative);
   }, []);
 
   const onInvalid = (formErrors: any) => {
-    console.log('🛑 FORM_INVALID', formErrors);
+    logger.debug('🛑 FORM_INVALID', formErrors);
     setError('root', { message: 'Validation failed — check fields' });
   };
 
@@ -85,8 +86,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      console.log('FORM_ERRORS (pre-submit):', errors);
-      console.log("🟩 FORM SUBMIT ATTEMPT", data);
+      logger.debug('FORM_ERRORS (pre-submit):', errors);
+      logger.debug("🟩 FORM SUBMIT ATTEMPT", data);
       const price = typeof data.price === 'string' ? parseFloat(data.price) : data.price;
       const now = new Date();
       
@@ -109,7 +110,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
       await onSave(menuItem);
       reset();
     } catch (error) {
-      console.error('onSubmit error', error);
+      logger.error('onSubmit error', error);
       setError('root', { message: 'Failed to save menu item' });
       throw error;
     } finally {
