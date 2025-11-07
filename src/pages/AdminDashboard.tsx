@@ -4,6 +4,7 @@ import React from 'react';
 import { DashboardCard } from '../components/dashboard/DashboardCard';
 import { dashboardData } from '../mocks/dashboardData';
 import { useAuthStore } from '../stores/authStore';
+import { formatINR } from '../utils/currency';
 
 const AdminDashboard: React.FC = () => {
   const { user } = useAuthStore();
@@ -51,7 +52,7 @@ const AdminDashboard: React.FC = () => {
           <motion.div variants={itemVariants}>
             <DashboardCard
               title="Total Sales"
-              value={`$${dashboardData.totalSales.toFixed(2)}`}
+              value={formatINR(dashboardData.totalSales)}
               icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
               subtitle="Today's revenue"
             />
