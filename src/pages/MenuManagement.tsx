@@ -18,8 +18,20 @@ const MenuManagement: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    loadItems();
+    loadItems().catch(e => console.warn('loadItems failed', e));
   }, [loadItems]);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    (window as any).__ORDERIN_STORE = useMenuStore.getState();
+    console.log('DEBUG: exposed __ORDERIN_STORE (inspect in console)');
+    // Also update it every 1s for convenience (remove later)
+    const interval = setInterval(() => {
+      try { (window as any).__ORDERIN_STORE = useMenuStore.getState(); } catch(e) {}
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
@@ -91,12 +103,23 @@ const MenuManagement: React.FC = () => {
           </Button>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
+        <div className="mb-4 p-3 rounded-md bg-yellow-50 border border-yellow-100 text-sm">
+          <div><strong>Debug</strong> — items in store: <span data-testid="debug-items-count">{items?.length ?? 0}</span></div>
+          <ul className="mt-2 max-h-32 overflow-y-auto text-xs">
+            {(items ?? []).map(it => (
+              <li key={it.id} className="py-0.5">
+                <span className="font-medium">{it.name}</span> — <span className="text-muted text-xs">{it.id}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
           {items.map((item, index) => (
             <motion.div
               key={item.id}
