@@ -90,27 +90,28 @@ export const useMenuStore = create<MenuStore>((set, get) => {
     try {
       // ensure price is number
       item.price = typeof item.price === 'string' ? parseFloat(item.price) : item.price;
-      
-      // persist to PouchDB if available
+
+      // optimistic update first to ensure UI re-render
+      set((s) => ({ items: [item, ...s.items] }));
+
+      // persist to PouchDB if available, else fallback
       if (typeof window !== 'undefined' && window.indexedDB) {
         try {
           if (PouchDB) {
             const db = new PouchDB('orderin-menu');
             await db.put({ ...item, updatedAt: new Date() });
             console.log('PouchDB save success', item.id);
+          } else {
+            localStorageFallbackSave([...get().items]);
           }
         } catch (pErr) {
           console.error('pouch put error', pErr);
-          // fallback to localStorage
-          localStorageFallbackSave([...get().items, item]);
+          localStorageFallbackSave([...get().items]);
         }
       } else {
-        localStorageFallbackSave([...get().items, item]);
+        localStorageFallbackSave([...get().items]);
       }
-      
-      // update state immutably after persistence
-      set((s) => ({ items: [item, ...s.items] }));
-      
+
       console.log('🟥 STORE ADD done', item.id);
     } catch (err) {
       console.error('menuStore.addItem error', err);
