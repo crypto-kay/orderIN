@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { MenuItem } from '../../types';
@@ -31,6 +31,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
   // DEV-STUB: store methods are handled by parent onSave; remove unused hook usage
   
   const formRef = useRef<HTMLFormElement | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const {
     register,
@@ -82,6 +83,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
   };
 
   const onSubmit = async (data: MenuItemFormValues) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       console.log('FORM_ERRORS (pre-submit):', errors);
       console.log("🟩 FORM SUBMIT ATTEMPT", data);
@@ -105,6 +108,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
       console.error('onSubmit error', error);
       setError('root', { message: 'Failed to save menu item' });
       throw error;
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -140,7 +145,6 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
             <form
               ref={formRef}
               onSubmit={handleSubmit(onSubmit, onInvalid)}
-              onSubmitCapture={(e) => { console.log('FORM onSubmitCapture', e); }}
               className="space-y-4"
             >
               <div className="space-y-2">
@@ -244,14 +248,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
                 <button
                   id="orderin-menu-submit"
                   type="submit"
-                  onClick={(ev) => {
-                    console.log('MANUAL submit click (hybrid) - invoking handleSubmit');
-                    // call RHF handler directly as fallback
-                    handleSubmit(onSubmit, onInvalid)();
-                    // also try to trigger native form submit
-                    try { formRef.current?.requestSubmit?.(); } catch (e) { console.warn('requestSubmit failed', e); }
-                  }}
-                  className="inline-flex items-center px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700 focus:outline-none"
+                  disabled={isSubmitting}
+                  className="inline-flex items-center px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700 focus:outline-none disabled:opacity-50"
                 >
                   {initial ? 'Update' : 'Add'} Item
                 </button>

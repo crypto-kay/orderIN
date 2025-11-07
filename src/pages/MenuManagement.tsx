@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Edit, Plus, Trash2 } from 'lucide-react';
+import { CheckCircle, Edit, Plus, Trash2, XCircle } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { MenuItemForm } from '../components/menu/MenuItemForm';
 import { Button } from '../components/ui/Button';
@@ -53,8 +53,6 @@ const MenuManagement: React.FC = () => {
     try {
       console.log("🟦 HANDLE SAVE", item);
       await useMenuStore.getState().addItem(item);
-      // Force a refresh to ensure UI updates
-      await loadItems();
       handleCloseForm();
       setMessage({ type: 'success', text: 'Item added successfully' });
       console.log('MenuManagement.handleSave done', item.id);
@@ -141,18 +139,18 @@ const MenuManagement: React.FC = () => {
                     }`}>
                       {item.isAvailable ? 'Available' : 'Unavailable'}
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={() => handleToggleAvailability(item.id)}
-                      className="h-8 w-8 p-0"
+                      aria-label="Toggle availability"
+                      className="hover:opacity-80 transition h-8 w-8 p-0"
                     >
                       {item.isAvailable ? (
-                        <Trash2 className="h-4 w-4" />
+                        <CheckCircle className="h-4 w-4 text-green-600" />
                       ) : (
-                        <Plus className="h-4 w-4" />
+                        <XCircle className="h-4 w-4 text-gray-400" />
                       )}
-                    </Button>
+                    </button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -161,14 +159,14 @@ const MenuManagement: React.FC = () => {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                    <button
+                      type="button"
                       onClick={() => handleDelete(item.id)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      aria-label="Delete item"
+                      className="hover:text-red-700 text-red-600 transition h-8 w-8 p-0"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
                 </CardHeader>
                 <CardContent>
