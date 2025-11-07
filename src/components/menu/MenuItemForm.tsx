@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { MenuItem } from '../../types';
@@ -30,6 +30,8 @@ interface MenuItemFormProps {
 export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onCancel }) => {
   // DEV-STUB: store methods are handled by parent onSave; remove unused hook usage
   
+  const formRef = useRef<HTMLFormElement | null>(null);
+  
   const {
     register,
     handleSubmit,
@@ -37,7 +39,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
     setError,
     reset,
     setValue,
-    control
+    control,
+    getValues
   } = useForm<MenuItemFormValues>({
     resolver: zodResolver(MenuItemFormSchema),
     defaultValues: {
@@ -51,6 +54,11 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
   });
 
   useEffect(() => {
+    console.log('MenuItemForm mounted. initial=', initial);
+    return () => console.log('MenuItemForm unmounted');
+  }, [initial]);
+
+  useEffect(() => {
     if (initial) {
       setValue('name', initial.name);
       setValue('price', initial.price);
@@ -60,10 +68,18 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
     }
   }, [initial, setValue]);
 
+  useEffect(() => {
+    const el = formRef.current;
+    if (!el) return;
+    const onNative = (ev: Event) => console.log('FORM native submit event', ev);
+    el.addEventListener('submit', onNative);
+    return () => el.removeEventListener('submit', onNative);
+  }, []);
+
   const onSubmit = async (data: MenuItemFormValues) => {
     try {
-      console.log('FORM_ERRORS', errors);
-      console.log("🟩 FORM SUBMITTED", data);
+      console.log('FORM_ERRORS (pre-submit):', errors);
+      console.log("🟩 FORM SUBMIT ATTEMPT", data);
       const price = typeof data.price === 'string' ? parseFloat(data.price) : data.price;
       const now = new Date();
       const menuItem: MenuItem = {
@@ -81,7 +97,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
       await onSave(menuItem);
       reset();
     } catch (error) {
-      console.error('Failed to save menu item:', error);
+      console.error('onSubmit error', error);
       setError('root', { message: 'Failed to save menu item' });
       throw error;
     }
@@ -116,7 +132,12 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
             </Button>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              ref={formRef}
+              onSubmit={handleSubmit(onSubmit)}
+              onSubmitCapture={(e) => { console.log('FORM onSubmitCapture', e); }}
+              className="space-y-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input
@@ -216,9 +237,15 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
                   Cancel
                 </Button>
                 <button
-                  type="submit"
                   id="orderin-menu-submit"
-                  onClick={handleSubmit(onSubmit)}
+                  type="submit"
+                  onClick={(ev) => {
+                    console.log('MANUAL submit click (hybrid) - invoking handleSubmit');
+                    // call RHF handler directly as fallback
+                    handleSubmit(onSubmit)();
+                    // also try to trigger native form submit
+                    try { formRef.current?.requestSubmit?.(); } catch (e) { console.warn('requestSubmit failed', e); }
+                  }}
                   className="inline-flex items-center px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700 focus:outline-none"
                 >
                   {initial ? 'Update' : 'Add'} Item
