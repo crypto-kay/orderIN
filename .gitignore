@@ -1,0 +1,82 @@
+# Logs
+logs/
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Node / package managers
+node_modules/
+
+# Build outputs (Vite / SSR / misc)
+dist/
+dist-ssr/
+.build/
+.temp/
+.tmp/
+
+# Vite cache
+.vite/
+# Some environments put cache under node_modules, which is already ignored:
+# node_modules/.vite/
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+.envrc
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Lint/format caches
+.eslintcache
+.stylelintcache
+.prettier-cache
+
+# Test / coverage artifacts
+coverage/
+.nyc_output/
+jest-*.xml
+jest-html-reporters-*.html
+.jest/
+.jest-cache/
+
+# Playwright
+.playwright/
+playwright-report/
+test-results/
+
+# PWA / Workbox (generated at build; dist is already ignored)
+# workbox-*.js
+# workbox-*.map
+# sw.js
+# sw.js.map
+
+# Tauri / Rust build output
+/src-tauri/target/
+/target/
+**/*.pdb
+/src-tauri/.cargo/
+/src-tauri/gen/
+
+# OS / crash dumps
+*.stackdump
+
+# Temporary / local data (optional; uncomment if you keep local DBs in repo tree)
+# data/
+# *.db
+# *.db-shm
+# *.db-wal
