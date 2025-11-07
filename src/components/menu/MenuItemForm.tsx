@@ -76,6 +76,11 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
     return () => el.removeEventListener('submit', onNative);
   }, []);
 
+  const onInvalid = (formErrors: any) => {
+    console.log('🛑 FORM_INVALID', formErrors);
+    setError('root', { message: 'Validation failed — check fields' });
+  };
+
   const onSubmit = async (data: MenuItemFormValues) => {
     try {
       console.log('FORM_ERRORS (pre-submit):', errors);
@@ -134,7 +139,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
           <CardContent>
             <form
               ref={formRef}
-              onSubmit={handleSubmit(onSubmit)}
+              onSubmit={handleSubmit(onSubmit, onInvalid)}
               onSubmitCapture={(e) => { console.log('FORM onSubmitCapture', e); }}
               className="space-y-4"
             >
@@ -242,7 +247,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
                   onClick={(ev) => {
                     console.log('MANUAL submit click (hybrid) - invoking handleSubmit');
                     // call RHF handler directly as fallback
-                    handleSubmit(onSubmit)();
+                    handleSubmit(onSubmit, onInvalid)();
                     // also try to trigger native form submit
                     try { formRef.current?.requestSubmit?.(); } catch (e) { console.warn('requestSubmit failed', e); }
                   }}
