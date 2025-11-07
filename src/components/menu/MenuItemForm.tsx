@@ -44,7 +44,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
   } = useForm<MenuItemFormValues>({
     resolver: zodResolver(MenuItemFormSchema),
     defaultValues: {
-      id: initial?.id || '',
+      id: initial?.id ?? undefined,
       name: initial?.name || '',
       price: initial?.price || 0,
       category: initial?.category || '',

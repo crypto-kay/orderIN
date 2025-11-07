@@ -44,9 +44,13 @@ export const MenuItemSchema = z.object({
 });
 
 export const MenuItemFormSchema = z.object({
+  id: z.preprocess((val) => {
+    if (val === '' || val === null) return undefined;
+    return val;
+  }, z.string().uuid().optional()),
   name: z.string().min(1, 'Item name is required'),
   description: z.string().optional(),
-  price: z.number().min(0, 'Price must be non-negative'),
+  price: z.preprocess((val) => (typeof val === 'string' ? parseFloat(val) : val), z.number().min(0, 'Price must be non-negative')),
   category: z.string().min(1, 'Category is required'),
   imageUrl: z.string().url().optional().or(z.literal('')),
   isAvailable: z.boolean(),
