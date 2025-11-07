@@ -216,7 +216,8 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
                   Cancel
                 </Button>
                 <button
-                  type="button"
+                  type="submit"
+                  id="orderin-menu-submit"
                   onClick={handleSubmit(onSubmit)}
                   className="inline-flex items-center px-4 py-2 rounded bg-primary-600 text-white hover:bg-primary-700 focus:outline-none"
                 >
