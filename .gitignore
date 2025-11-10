@@ -80,3 +80,7 @@ test-results/
 # *.db
 # *.db-shm
 # *.db-wal
+# AI conversation files (personal)  
+qwen.md  
+claude.md  
+ 
