@@ -19,7 +19,7 @@ const MenuManagement: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    loadItems().catch(e => console.warn('loadItems failed', e));
+    loadItems().catch(e => logger.warn('loadItems failed', e));
   }, [loadItems]);
 
   // Removed debug global exposure for production

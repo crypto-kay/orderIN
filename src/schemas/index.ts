@@ -193,7 +193,7 @@ export const SettingsFormSchema = z.object({
 // API Response schema
 export const ApiResponseSchema = z.object({
   success: z.boolean(),
-  data: z.any().optional(),
+  data: z.unknown().optional(),
   error: z.string().optional(),
   message: z.string().optional(),
 });
@@ -224,5 +224,5 @@ export type Complaint = z.infer<typeof ComplaintSchema>;
 export type ComplaintForm = z.infer<typeof ComplaintFormSchema>;
 export type CafeSettings = z.infer<typeof CafeSettingsSchema>;
 export type SettingsForm = z.infer<typeof SettingsFormSchema>;
-export type ApiResponse<T = any> = z.infer<typeof ApiResponseSchema> & { data?: T };
+export type ApiResponse<T = unknown> = z.infer<typeof ApiResponseSchema> & { data?: T };
 export type SyncStatus = z.infer<typeof SyncStatusSchema>;

@@ -77,7 +77,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
     return () => el.removeEventListener('submit', onNative);
   }, []);
 
-  const onInvalid = (formErrors: any) => {
+  const onInvalid = (formErrors: Record<string, unknown>) => {
     logger.debug('🛑 FORM_INVALID', formErrors);
     setError('root', { message: 'Validation failed — check fields' });
   };
@@ -106,7 +106,7 @@ export const MenuItemForm: React.FC<MenuItemFormProps> = ({ initial, onSave, onC
       };
 
       const isEdit = !!initial?.id;
-      console.log(`onSave called with ${isEdit ? 'EDIT' : 'ADD'} item`, menuItem);
+      logger.debug(`onSave called with ${isEdit ? 'EDIT' : 'ADD'} item`, menuItem);
       await onSave(menuItem);
       reset();
     } catch (error) {

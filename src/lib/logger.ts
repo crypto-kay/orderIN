@@ -3,18 +3,18 @@
  * In production, debug logs are suppressed
  */
 export const logger = {
-  debug: (...args: any[]) => {
+  debug: (...args: unknown[]) => {
     if (import.meta.env.MODE !== 'production') {
       console.debug(...args);
     }
   },
-  info: (...args: any[]) => {
+  info: (...args: unknown[]) => {
     console.info(...args);
   },
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]) => {
     console.warn(...args);
   },
-  error: (...args: any[]) => {
+  error: (...args: unknown[]) => {
     console.error(...args);
   },
 };

@@ -8,7 +8,7 @@ import ComplaintsPage from './pages/ComplaintsPage';
 import KDSPage from './pages/KDSPage';
 import LoginPage from './pages/LoginPage';
 import MenuManagement from './pages/MenuManagement';
-import OrdersPage from './pages/OrdersPage';
+import OrdersManagement from './pages/OrdersManagement';
 import SettingsPage from './pages/SettingsPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import { useAuthStore } from './stores/authStore';
@@ -48,7 +48,7 @@ const App: React.FC = () => {
               } />
               <Route path="/orders" element={
                 <ProtectedRoute allowedRoles={['admin', 'staff']}>
-                  <OrdersPage />
+                  <OrdersManagement />
                 </ProtectedRoute>
               } />
               <Route path="/kitchen" element={
