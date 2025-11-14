@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useTableStore } from '../../stores/tableStore';
-import { createQrSvgForTable, svgToPngBlob } from '../../lib/qr';
 import type { Table } from '../../types/Table';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -17,7 +16,7 @@ export default function TableForm({ table, onSave, onCancel }: {
   onSave: (table: Table) => void;
   onCancel: () => void;
 }) {
-  const { addTable, updateTable, loading, error } = useTableStore();
+  const { addTable, updateTable, loading } = useTableStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<TableFormData>(
     table ? {
@@ -48,15 +47,15 @@ export default function TableForm({ table, onSave, onCancel }: {
         // Create new table
         await addTable({
           name: formData.name!,
-          number: formData.number ? parseInt(formData.number) : undefined,
+          number: formData.number ? parseInt(formData.number) : 1,
           zone: formData.zone,
           status: 'available',
         });
       }
       
       onSave(table || ({} as Table));
-    } catch (error: unknown) {
-      console.error('❌ TABLE_FORM_ERROR', error);
+    } catch {
+      // Error handled silently
     } finally {
       setIsSubmitting(false);
     }
@@ -64,11 +63,12 @@ export default function TableForm({ table, onSave, onCancel }: {
 
   const handleRegenerateQr = async () => {
     if (!table) return;
-    
+
     try {
+      setIsSubmitting(true);
       await useTableStore.getState().regenerateQR(table.id);
-    } catch (error: unknown) {
-      console.error('❌ QR_REGENERATE_ERROR', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

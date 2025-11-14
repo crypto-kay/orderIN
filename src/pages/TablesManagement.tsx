@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useTableStore } from '../../stores/tableStore';
-import { Button } from '../ui/Button';
-import { Input } from '../ui/Input';
-import { Label } from '../ui/Label';
+import { useEffect, useState } from 'react';
+import { useTableStore } from '../stores/tableStore';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
 import TableForm from '../components/tables/TableForm';
 import QRCodeCard from '../components/tables/QRCodeCard';
-import type { Table } from '../../types/Table';
+import type { Table } from '../types/Table';
 
 export default function TablesManagement() {
   const { tables, loadTables, loading, error } = useTableStore();
@@ -39,10 +38,8 @@ export default function TablesManagement() {
 
   const handleDeleteTable = async (id: string) => {
     if (confirm('Are you sure you want to delete this table? This action cannot be undone.')) {
-      // TODO: Import and use deleteTable from tableStore
-      console.log('🗑️ Deleting table:', id);
-      // await deleteTable(id);
-      // loadTables(); // Refresh list
+      await useTableStore.getState().deleteTable(id);
+      loadTables(); // Refresh list
     }
   };
 
@@ -122,12 +119,8 @@ export default function TablesManagement() {
               <div className="mt-4">
                 <QRCodeCard
                   table={table}
-                  onRegenerate={() => {
-                    // TODO: Import and use regenerateQr from tableStore
-                    console.log('🔄 Regenerating QR for table:', table.id);
-                  }}
-                  onDownload={() => {
-                    console.log('📥 Downloading QR for table:', table.id);
+                  onRegenerate={async () => {
+                    await useTableStore.getState().regenerateQR(table.id);
                   }}
                 />
               </div>
@@ -140,7 +133,7 @@ export default function TablesManagement() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
             <TableForm
-              table={editingTable}
+              table={editingTable || undefined}
               onSave={handleCloseForm}
               onCancel={handleCloseForm}
             />

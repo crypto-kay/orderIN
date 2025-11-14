@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import MenuManagement from './pages/MenuManagement';
 import OrdersManagement from './pages/OrdersManagement';
 import SettingsPage from './pages/SettingsPage';
+import TablesManagement from './pages/TablesManagement';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import { useAuthStore } from './stores/authStore';
 
@@ -54,6 +55,11 @@ const App: React.FC = () => {
               <Route path="/kitchen" element={
                 <ProtectedRoute allowedRoles={['kitchen']}>
                   <KDSPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/tables" element={
+                <ProtectedRoute allowedRoles={['admin', 'staff']}>
+                  <TablesManagement />
                 </ProtectedRoute>
               } />
               <Route path="/complaints" element={

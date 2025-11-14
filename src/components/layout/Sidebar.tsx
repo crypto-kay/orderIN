@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
-import type { User } from '../../types/User';
 import {
   LayoutDashboard,
   MessageSquare,
@@ -10,6 +9,7 @@ import {
   Settings,
   Shield,
   ShoppingCart,
+  Table,
   Utensils,
   X
 } from 'lucide-react';
@@ -38,24 +38,22 @@ export default function Sidebar({ isOpen, onClose, width, ariaLabel }: SidebarPr
   }, []);
 
   const { user } = useAuthStore();
-  const [isClosing, setIsClosing] = useState(false);
 
   const handleClose = () => {
-    setIsClosing(true);
     setTimeout(() => {
       onClose();
-      setIsClosing(false);
     }, 150);
   };
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/menu', label: 'Menu', icon: Utensils },
-    { path: '/orders', label: 'Orders', icon: ShoppingCart },
-    { path: '/kitchen', label: 'Kitchen Display', icon: Monitor },
-    { path: '/admin', label: 'Admin', icon: Shield },
-    { path: '/complaints', label: 'Complaints', icon: MessageSquare },
-    { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'staff', 'kitchen'] },
+    { path: '/menu', label: 'Menu', icon: Utensils, roles: ['admin', 'staff'] },
+    { path: '/orders', label: 'Orders', icon: ShoppingCart, roles: ['admin', 'staff'] },
+    { path: '/tables', label: 'Tables', icon: Table, roles: ['admin', 'staff'] },
+    { path: '/kitchen', label: 'Kitchen Display', icon: Monitor, roles: ['kitchen'] },
+    { path: '/admin', label: 'Admin', icon: Shield, roles: ['admin'] },
+    { path: '/complaints', label: 'Complaints', icon: MessageSquare, roles: ['admin', 'staff'] },
+    { path: '/settings', label: 'Settings', icon: Settings, roles: ['admin'] },
   ];
 
   // Filter nav items based on user role
@@ -100,6 +98,7 @@ export default function Sidebar({ isOpen, onClose, width, ariaLabel }: SidebarPr
                       ? 'bg-primary-100 text-primary-700'
                       : 'text-gray-600 hover:text-gray-900'
                   }`
+                }
               >
                 <item.icon className="h-4 w-4" />
                 <span>{item.label}</span>
@@ -110,10 +109,9 @@ export default function Sidebar({ isOpen, onClose, width, ariaLabel }: SidebarPr
 
         {/* Main Content */}
         <main className={`flex-1 ${isOpen ? 'ml-80' : ''} transition-all duration-300`}>
-          {children}
         </main>
       </div>
     </div>,
-    portalRoot
+    document.body
   );
-}
+};

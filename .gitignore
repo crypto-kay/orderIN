@@ -53,6 +53,8 @@ jest-*.xml
 jest-html-reporters-*.html
 .jest/
 .jest-cache/
+.vitest/
+.cache/
 
 # Playwright
 .playwright/
@@ -80,3 +82,7 @@ test-results/
 # *.db
 # *.db-shm
 # *.db-wal
+
+# AI/Dev specific files
+qwen.md
+*.local-schema.json

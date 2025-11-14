@@ -32,9 +32,13 @@ export const useTableStore = create<TableStore>((set, get) => ({
       });
       const tables = result.rows.map(row => row.doc as Table);
       set({ tables, loading: false });
-      console.log('📦 TABLES_LOADED', tables.length);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📦 TABLES_LOADED', tables.length);
+      }
     } catch (error: unknown) {
-      console.error('❌ LOAD_TABLES_ERROR', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ LOAD_TABLES_ERROR', error);
+      }
       set({ error: 'Failed to load tables', loading: false });
     }
   },
@@ -59,9 +63,13 @@ export const useTableStore = create<TableStore>((set, get) => ({
         tables: [{ ...newTable, _rev: response.rev }, ...currentTables],
         loading: false
       });
-      console.log('🟦 TABLE_CREATED', newTable.id);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🟦 TABLE_CREATED', newTable.id);
+      }
     } catch (error: unknown) {
-      console.error('❌ ADD_TABLE_ERROR', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ ADD_TABLE_ERROR', error);
+      }
       set({ error: 'Failed to create table', loading: false });
     }
   },
@@ -95,7 +103,9 @@ export const useTableStore = create<TableStore>((set, get) => ({
         // Use proper _id for PouchDB lookup
         const key = originalTable._id ?? id;
         const latestDoc = await db.get(key);
-        console.log(`📝 UPDATE_ATTEMPT_${attempt}: using _id=${key}, _rev=${latestDoc._rev}`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`📝 UPDATE_ATTEMPT_${attempt}: using _id=${key}, _rev=${latestDoc._rev}`);
+        }
 
         const updatedTable: Table = {
           ...latestDoc,
@@ -114,14 +124,18 @@ export const useTableStore = create<TableStore>((set, get) => ({
           updatingId: null,
         });
 
-        console.log(`🟩 UPDATE_SUCCESS (new _rev: ${response.rev})`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`🟩 UPDATE_SUCCESS (new _rev: ${response.rev})`);
+        }
 
       } catch (error: unknown) {
         if (error && typeof error === 'object') {
           const errorObj = error as { name?: string; status?: number };
 
           if ((errorObj.name === 'not_found' || errorObj.status === 404) && attempt === 1) {
-            console.log('🟨 NOT_FOUND: searching allDocs for table...');
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('🟨 NOT_FOUND: searching allDocs for table...');
+            }
             // Search allDocs to find correct _id
             const allDocs = await db.allDocs({ include_docs: true });
             const foundDoc = allDocs.rows.find(row => row.doc?.id === id);
@@ -141,11 +155,15 @@ export const useTableStore = create<TableStore>((set, get) => ({
                 loading: false,
                 updatingId: null,
               });
-              console.log(`🟩 UPDATE_SUCCESS after fallback (new _rev: ${response.rev})`);
+              if (process.env.NODE_ENV !== 'production') {
+                console.log(`🟩 UPDATE_SUCCESS after fallback (new _rev: ${response.rev})`);
+              }
               return;
             }
           } else if (errorObj.name === 'conflict' && attempt === 1) {
-            console.log('🟨 CONFLICT_DETECTED, retrying...');
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('🟨 CONFLICT_DETECTED, retrying...');
+            }
             // Brief backoff before retry
             await new Promise(resolve => setTimeout(resolve, 100));
             return tryUpdate(2);
@@ -153,7 +171,9 @@ export const useTableStore = create<TableStore>((set, get) => ({
         }
 
         // Failed after retry or different error - revert optimistic update
-        console.error('🟥 UPDATE_FAILED_AFTER_RETRY', error);
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('🟥 UPDATE_FAILED_AFTER_RETRY', error);
+        }
 
         set({
           tables: currentTables, // Revert to original state
@@ -190,15 +210,19 @@ export const useTableStore = create<TableStore>((set, get) => ({
         loading: false,
       });
 
-      console.log('🗑️ TABLE_DELETED', id);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🗑️ TABLE_DELETED', id);
+      }
     } catch (error: unknown) {
-      console.error('❌ DELETE_TABLE_ERROR', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ DELETE_TABLE_ERROR', error);
+      }
       set({ error: 'Failed to delete table', loading: false });
     }
   },
 
-  // TODO: Implement QR code generation using qrcode library
-  // This should generate both QR URL and SVG for table ordering
+  // Generate QR code using qrcode library
+  // This generates both QR URL and SVG for table ordering
   regenerateQR: async (id: string) => {
     set({ updatingId: id, loading: true, error: null });
 
@@ -211,10 +235,12 @@ export const useTableStore = create<TableStore>((set, get) => ({
     }
 
     try {
-      // TODO: Generate QR code using qrcode library
-      // For now, create a placeholder URL
-      const qrUrl = `https://orderin.local/table/${id}`;
-      const qrSvg = `<!-- QR SVG placeholder for table ${id} -->`;
+      const { createQrSvgForTable } = await import('../lib/qr');
+
+      // Generate QR code SVG and URL
+      const qrSvg = await createQrSvgForTable(table);
+      const base = typeof window !== 'undefined' ? window.location.origin : '';
+      const qrUrl = `${base}/order?tableId=${encodeURIComponent(table.id)}`;
 
       const updatedTable = {
         ...table,
@@ -235,9 +261,13 @@ export const useTableStore = create<TableStore>((set, get) => ({
         updatingId: null,
       });
 
-      console.log('🟩 QR_REGENERATED', id);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🟩 QR_REGENERATED', id);
+      }
     } catch (error: unknown) {
-      console.error('❌ QR_GENERATE_ERROR', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ QR_GENERATE_ERROR', error);
+      }
       set({ error: 'Failed to generate QR code', loading: false, updatingId: null });
     }
   },
