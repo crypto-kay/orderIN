@@ -18,12 +18,24 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (username: string, pin: string): Promise<boolean> => {
         try {
-          // For demo purposes, check against hardcoded credentials
+          // For demo purposes, check against environment-driven credentials
           // In production, this would validate against a secure backend
           const demoUsers = [
-            { username: 'admin', pin: '1234', role: 'admin' as const },
-            { username: 'staff', pin: '1234', role: 'staff' as const },
-            { username: 'kitchen', pin: '1234', role: 'kitchen' as const },
+            {
+              username: import.meta.env.VITE_DEMO_USER_ADMIN_USERNAME || 'admin',
+              pin: import.meta.env.VITE_DEMO_USER_ADMIN_PIN || '1234',
+              role: 'admin' as const
+            },
+            {
+              username: import.meta.env.VITE_DEMO_USER_STAFF_USERNAME || 'staff',
+              pin: import.meta.env.VITE_DEMO_USER_STAFF_PIN || '1234',
+              role: 'staff' as const
+            },
+            {
+              username: import.meta.env.VITE_DEMO_USER_KITCHEN_USERNAME || 'kitchen',
+              pin: import.meta.env.VITE_DEMO_USER_KITCHEN_PIN || '1234',
+              role: 'kitchen' as const
+            },
           ];
 
           const demoUser = demoUsers.find(u => u.username === username && u.pin === pin);

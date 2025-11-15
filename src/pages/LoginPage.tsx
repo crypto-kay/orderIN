@@ -111,9 +111,9 @@ const LoginPage: React.FC = () => {
 
             <div className="mt-6 text-center text-sm text-secondary-600">
               <p>Demo credentials:</p>
-              <p>Admin: admin / 1234</p>
-              <p>Staff: staff / 1234</p>
-              <p>Kitchen: kitchen / 1234</p>
+              <p>Admin: {import.meta.env.VITE_DEMO_USER_ADMIN_USERNAME || 'admin'} / {import.meta.env.VITE_DEMO_USER_ADMIN_PIN || '1234'}</p>
+              <p>Staff: {import.meta.env.VITE_DEMO_USER_STAFF_USERNAME || 'staff'} / {import.meta.env.VITE_DEMO_USER_STAFF_PIN || '1234'}</p>
+              <p>Kitchen: {import.meta.env.VITE_DEMO_USER_KITCHEN_USERNAME || 'kitchen'} / {import.meta.env.VITE_DEMO_USER_KITCHEN_PIN || '1234'}</p>
               {import.meta.env.MODE === 'development' && (
                 <p>Dev: admin@orderin.test / password</p>
               )}

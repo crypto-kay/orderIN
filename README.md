@@ -2,6 +2,30 @@
 
 This project provides a minimal setup to get OrderIN working in Vite with HMR and some ESLint rules.
 
+## Environment Setup
+
+1. Copy the environment example file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Configure your environment variables in `.env`:
+   - Set demo credentials for development
+   - Configure database name
+   - Set feature flags as needed
+
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Development
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
