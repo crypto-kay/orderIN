@@ -86,3 +86,5 @@ test-results/
 # AI/Dev specific files
 qwen.md
 *.local-schema.json
+$null
+.qodo/
