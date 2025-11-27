@@ -7,7 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ComplaintsPage from './pages/ComplaintsPage';
 import KDSPage from './pages/KDSPage';
 import LoginPage from './pages/LoginPage';
-import MenuPage from './pages/MenuPage';
+import MenuManagement from './pages/MenuManagement';
 import OrdersPage from './pages/OrdersPage';
 import SettingsPage from './pages/SettingsPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
@@ -43,7 +43,7 @@ const App: React.FC = () => {
               } />
               <Route path="/menu" element={
                 <ProtectedRoute allowedRoles={['admin', 'staff']}>
-                  <MenuPage />
+                  <MenuManagement />
                 </ProtectedRoute>
               } />
               <Route path="/orders" element={
