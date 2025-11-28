@@ -10,27 +10,17 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
+      {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
-
-      {/* Sidebar */}
-      <div
-        className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
-      >
-        <Sidebar />
-      </div>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -54,7 +44,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         {/* Desktop topbar */}
         <header className="hidden lg:block">
-          <Topbar />
+          <Topbar onMenuClick={() => setSidebarOpen(true)} />
         </header>
 
         {/* Page content */}
@@ -62,6 +52,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           {children}
         </main>
       </div>
+
+      {/* Sidebar - rendered as portal overlay */}
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+      />
     </div>
   );
 };

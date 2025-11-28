@@ -29,7 +29,7 @@ const LoginPage: React.FC = () => {
       if (!success) {
         setError('root', { message: 'Invalid username or PIN' });
       }
-    } catch (error) {
+    } catch {
       setError('root', { message: 'Login failed. Please try again.' });
     } finally {
       setIsLoading(false);
