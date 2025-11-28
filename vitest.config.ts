@@ -9,6 +9,10 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.ts'],
     pool: 'forks',
+    // Add these options to handle SSR issues
+    ssr: {
+      noExternal: ['zustand', 'pouchdb']
+    }
   },
   resolve: {
     alias: {

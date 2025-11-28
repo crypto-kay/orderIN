@@ -1,15 +1,13 @@
 import React from 'react';
-import { createQrSvgForTable, svgToPngBlob } from '../../lib/qr';
 import type { Table } from '../../types/Table';
 import { Button } from '../ui/Button';
 
 interface QRCodeCardProps {
   table: Table;
   onRegenerate: () => void;
-  onDownload: () => void;
 }
 
-export default function QRCodeCard({ table, onRegenerate, onDownload }: QRCodeCardProps) {
+export default function QRCodeCard({ table, onRegenerate }: QRCodeCardProps) {
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
 
@@ -24,18 +22,23 @@ export default function QRCodeCard({ table, onRegenerate, onDownload }: QRCodeCa
 
   const handleDownload = async () => {
     if (!table.qrSvg) return;
-    
+
     setIsDownloading(true);
     try {
-      const blob = await svgToPngBlob(table.qrSvg, 200, 200);
+      const { svgToPngBlob } = await import('../../lib/qr');
+      const blob = await svgToPngBlob(table.qrSvg, 300, 300);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `table-${table.id}.png`;
+      a.download = `table-${table.number || table.id}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ DOWNLOAD_ERROR', error);
+      }
     } finally {
       setIsDownloading(false);
     }
@@ -50,6 +53,7 @@ export default function QRCodeCard({ table, onRegenerate, onDownload }: QRCodeCa
         <div className="text-sm text-gray-500">
           {table.name && ` • ${table.name}`}
           {table.zone && ` • ${table.zone}`}
+          {table.status && ` • Status: ${table.status}`}
         </div>
       </div>
 

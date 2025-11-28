@@ -31,7 +31,9 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
       });
       const orders = result.rows.map(row => row.doc as Order);
       set({ orders, loading: false });
-      console.log('📦 ORDERS_LOADED', orders.length);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📦 ORDERS_LOADED', orders.length);
+      }
     } catch (error: unknown) {
       console.error('❌ LOAD_ORDERS_ERROR', error);
       set({ error: 'Failed to load orders', loading: false });
@@ -58,7 +60,9 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
         orders: [{ ...newOrder, _rev: response.rev }, ...currentOrders],
         loading: false
       });
-      console.log('🟦 ORDER_CREATED', newOrder.id);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🟦 ORDER_CREATED', newOrder.id);
+      }
     } catch (error: unknown) {
       console.error('❌ ADD_ORDER_ERROR', error);
       set({ error: 'Failed to create order', loading: false });
@@ -206,7 +210,9 @@ export const useOrderStore = create<OrderStore>((set, get) => ({
         loading: false,
       });
 
-      console.log('🗑️ ORDER_DELETED', id);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🗑️ ORDER_DELETED', id);
+      }
     } catch (error: unknown) {
       console.error('❌ DELETE_ORDER_ERROR', error);
       set({ error: 'Failed to delete order', loading: false });
